@@ -28,8 +28,6 @@ namespace iSMIDIButtonMapper
 
         public override void DidFinishLaunching(NSNotification notification)
         {
-            // Insert code here to initialize your application
-
             // Enumerate the MIDI devices available
 
             var access = MidiAccessManager.Default;
