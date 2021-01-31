@@ -11,7 +11,7 @@ using System.Windows.Forms;
 using Commons.Music.Midi;
 using System.Runtime.InteropServices;
 
-namespace iSMIDIButtonMapperWinFormsDOTNET
+namespace iSMIDIButtonMapperWinFormsDOTNET 
 {
     public partial class Form1 : Form
     {
@@ -65,6 +65,8 @@ namespace iSMIDIButtonMapperWinFormsDOTNET
         public const int VK_F23 = 0x86;
         public const int VK_F24 = 0x87;
 
+        public IMidiOutput outputPort = null;
+
         private void InitialiseMIDI()
         {
 
@@ -84,6 +86,13 @@ namespace iSMIDIButtonMapperWinFormsDOTNET
             noteToKeyboardMap.Add(61, new KeyboardEvent((ushort)VK_F19, 0));
             noteToKeyboardMap.Add(62, new KeyboardEvent((ushort)VK_F20, 0));
 
+            // Open the output port
+            var oport = access.Outputs.FirstOrDefault(i => i.Id == "Arduino Leonardo") ?? access.Outputs.Last();
+            var output = access.OpenOutputAsync(oport.Id).Result;
+            outputPort = output;
+
+
+            // Open the input port
             var iport = access.Inputs.FirstOrDefault(i => i.Id == "Arduino Leonardo") ?? access.Inputs.Last();
             var input = access.OpenInputAsync(iport.Id).Result;
             Console.WriteLine("Using " + iport.Id);
@@ -156,7 +165,7 @@ namespace iSMIDIButtonMapperWinFormsDOTNET
                             {
                                 this.button3.Select();
                             }
-                        }); 
+                        });
                     }
                     else
                     {
@@ -169,6 +178,7 @@ namespace iSMIDIButtonMapperWinFormsDOTNET
 
             };
 
+
         }
 
 
@@ -176,35 +186,103 @@ namespace iSMIDIButtonMapperWinFormsDOTNET
         private void Form1_Load(object sender, EventArgs e)
         {
             InitialiseMIDI();
+            UpdateButton3Colour();
+            UpdateButton2Colour();
+            UpdateButton1Colour();
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
-            var access = MidiAccessManager.Default;
-            var iport = access.Outputs.FirstOrDefault(i => i.Id == "Arduino Leonardo") ?? access.Outputs.Last();
-            var output = access.OpenOutputAsync(iport.Id).Result;
-            output.Send(new byte[] { MidiEvent.NoteOn, 60, 0x70 }, 0, 3, 0);
-            output.CloseAsync();
+            outputPort.Send(new byte[] { MidiEvent.NoteOn, 60, 0x70 }, 0, 3, 0);
         }
 
         private void button2_Click(object sender, EventArgs e)
         {
-            var access = MidiAccessManager.Default;
-            var iport = access.Outputs.FirstOrDefault(i => i.Id == "Arduino Leonardo") ?? access.Outputs.Last();
-            var output = access.OpenOutputAsync(iport.Id).Result;
-            output.Send(new byte[] { MidiEvent.NoteOn, 61, 0x70 }, 0, 3, 0);
-            output.CloseAsync();
+            outputPort.Send(new byte[] { MidiEvent.NoteOn, 61, 0x70 }, 0, 3, 0);
 
         }
 
         private void button3_Click(object sender, EventArgs e)
         {
-            var access = MidiAccessManager.Default;
-            var iport = access.Outputs.FirstOrDefault(i => i.Id == "Arduino Leonardo") ?? access.Outputs.Last();
-            var output = access.OpenOutputAsync(iport.Id).Result;
-            output.Send(new byte[] { MidiEvent.NoteOn, 62, 0x70 }, 0, 3, 0);
-            output.CloseAsync();
+            outputPort.Send(new byte[] { MidiEvent.NoteOn, 62, 0x70 }, 0, 3, 0);
+        }
 
+        private void UpdateButton3Colour()
+        {
+            Color calcColour = Color.FromArgb(Button3_Red.Value * 2, Button3_Green.Value * 2, Button3_Blue.Value * 2);
+            button1.BackColor = calcColour;
+
+            outputPort.Send(new byte[] { MidiEvent.CC, 00, (byte)Button3_Red.Value }, 0, 3, 0);
+            outputPort.Send(new byte[] { MidiEvent.CC | 0x01, 00, (byte)Button3_Green.Value }, 0, 3, 0);
+            outputPort.Send(new byte[] { MidiEvent.CC | 0x02, 00, (byte)Button3_Blue.Value }, 0, 3, 0);
+        }
+
+        private void UpdateButton2Colour()
+        {
+            Color calcColour = Color.FromArgb(Button2_Red.Value * 2, Button2_Green.Value * 2, Button2_Blue.Value * 2);
+            button2.BackColor = calcColour;
+
+            outputPort.Send(new byte[] { MidiEvent.CC, 01, (byte)Button2_Red.Value }, 0, 3, 0);
+            outputPort.Send(new byte[] { MidiEvent.CC | 0x01, 01, (byte)Button2_Green.Value }, 0, 3, 0);
+            outputPort.Send(new byte[] { MidiEvent.CC | 0x02, 01, (byte)Button2_Blue.Value }, 0, 3, 0);
+        }
+
+        private void UpdateButton1Colour()
+        {
+            Color calcColour = Color.FromArgb(Button1_Red.Value * 2, Button1_Green.Value * 2, Button1_Blue.Value * 2);
+            button3.BackColor = calcColour;
+
+            outputPort.Send(new byte[] { MidiEvent.CC, 02, (byte)Button1_Red.Value }, 0, 3, 0);
+            outputPort.Send(new byte[] { MidiEvent.CC | 0x01, 02, (byte)Button1_Green.Value }, 0, 3, 0);
+            outputPort.Send(new byte[] { MidiEvent.CC | 0x02, 02, (byte)Button1_Blue.Value }, 0, 3, 0);
+        }
+
+
+
+
+        private void Button3_Blue_Scroll(object sender, EventArgs e)
+        {
+            UpdateButton3Colour();
+        }
+
+        private void Button3_Red_Scroll(object sender, EventArgs e)
+        {
+            UpdateButton3Colour();
+        }
+
+        private void Button3_Green_Scroll(object sender, EventArgs e)
+        {
+            UpdateButton3Colour();
+        }
+
+        private void Button2_Blue_Scroll(object sender, EventArgs e)
+        {
+            UpdateButton2Colour();
+        }
+
+        private void Button2_Green_Scroll(object sender, EventArgs e)
+        {
+            UpdateButton2Colour();
+        }
+
+        private void Button2_Red_Scroll(object sender, EventArgs e)
+        {
+            UpdateButton2Colour();
+        }
+
+        private void Button1_Blue_Scroll(object sender, EventArgs e)
+        {
+            UpdateButton1Colour();
+        }
+
+        private void Button1_Green_Scroll(object sender, EventArgs e)
+        {
+            UpdateButton1Colour();
+        }
+
+        private void Button1_Red_Scroll(object sender, EventArgs e)
+        {
+            UpdateButton1Colour();
         }
     }
 }
